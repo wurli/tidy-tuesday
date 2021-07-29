@@ -29,24 +29,20 @@ key <- tibble(
   height = c(1, 1, 1, -3),
   colour = unlist(clr),
   text_colour = colorspace::darken(colour, 0.2),
-  label = c("Gold medals", "Silver medals", "Bronze medals", "No medal")
+  label = c("Gold medals", "Silver medals", "Bronze medals", "Participation but\nno medal")
 ) %>%
   ggplot(aes(x = 0, y = height, fill = colour, label = label, group = medal)) +
   geom_col(data = ~filter(., medal != "None"), width = 1) +
   geom_col(data = ~filter(., medal == "None"), width = 0.6) +
   geom_text(
     aes(x = -1, y = c(2.5, 1.5, 0.5, -1.5), colour = text_colour),
-    size = 5, hjust = "right", fontface = "bold"
-  ) +
-  annotate(
-    "text", x = 0, y = 0, label = " Year", angle = -90, colour = "grey99",
-    hjust = "left", size = 4.5, fontface = "bold"
+    size = 4.5, hjust = "right", fontface = "bold"
   ) +
   scale_fill_identity() +
   scale_colour_identity() +
   geom_segment(aes(x = -.7, xend = .7, y = 0, yend = 0), size = 0.3, colour = "grey50") +
   theme_void() +
-  xlim(-7.5, 1) +
+  xlim(-7, 1) +
   theme(panel.background = element_rect(fill = "grey99", colour = "grey90", size = 3))
 
 
@@ -80,8 +76,8 @@ plot <- olympics %>%
   mutate(n = ifelse(medal == "None", -n, n)) %>%
 
   mutate(label = glue::glue(
-    "**{country}**<br><span style = 'font-size:10pt; ",
-    "font-family: \"Scheherazade\"'>**{toupper(top_sports)}**</span>"
+    "**{country}**<br><span style = 'font-size:9.5pt; ",
+    "font-family: \"Scheherazade\"'>**-{toupper(top_sports)}-**</span>"
   )) %>%
 
   mutate(n_years = n_distinct(year)) %>%
@@ -93,18 +89,8 @@ plot <- olympics %>%
   ungroup() %>%
 
   ggplot(aes(x = year, y = n, fill = medal)) +
-  geom_col(data = ~filter(., medal != "None")) +
-  geom_col(data = ~filter(., medal == "None"), width = 2.5) +
-  geom_text(
-    aes(label = year, y = -range / 25),
-    colour = "grey99", angle = -90, size = 2.5, hjust = "left", fontface = "bold",
-    data = ~count(., label, year, loss = medal == "None", wt = n) %>%
-      group_by(label) %>%
-      mutate(range = max(n[!loss]) - min(n[loss])) %>%
-      ungroup() %>%
-      filter(loss & abs(n) / range >= 0.4) %>%
-      mutate(medal = NA)
-  ) +
+  geom_col(data = ~filter(., medal != "None"), width = 3) +
+  geom_col(data = ~filter(., medal == "None"), width = 2) +
   geom_hline(yintercept = 0, size = 0.3, colour = "grey50") +
   scale_fill_manual(
     breaks = names(clr),
@@ -112,9 +98,14 @@ plot <- olympics %>%
     guide = FALSE
   ) +
   scale_y_continuous(
-    #breaks = function(l) c(ceiling(l[1]), floor(l[2])),
     breaks = scales::extended_breaks(n = 5, Q = c(5, 10, 20)),
     labels = abs
+  ) +
+  scale_x_continuous(
+    breaks = olympics %>%
+      filter(season == "Summer", year %% 8 == 0) %>%
+      pull(year) %>%
+      unique()
   ) +
   facet_wrap(~label, scales = "free_y") +
   theme_minimal() +
@@ -123,7 +114,8 @@ plot <- olympics %>%
     plot.title = element_text(size = 50),
     panel.grid.major.y = element_line(colour = "grey85", size = 0.2),
     axis.text.y = element_text(colour = "grey60", size = 8),
-    axis.text.x = element_blank(),
+    axis.text.x = element_text(angle = 30, size = 8),
+    axis.ticks.x = element_line(colour = "grey40"),
     strip.text = element_textbox_simple(
       halign = 0.5, margin = margin(6, 0, 6, 0), size = 9
     ),
@@ -133,10 +125,10 @@ plot <- olympics %>%
   ) +
   labs(
     x = NULL, y = NULL,
-    title = "A test title",
+    title = "Strongest Sports",
     subtitle = paste(
-      "This plot shows the performance of each country in the sport they",
-      "have most excelled at in all olympic games since 1980. Countries are",
+      "This graphic shows the performance of each country in the sport they",
+      "have most excelled at across all olympic games since 1980. Countries are",
       "included based on the number of medals won and the frequency of their",
       "participation in events between 1980 and 2016.",
       sep = "\n"
@@ -151,7 +143,7 @@ plot <- olympics %>%
 cowplot::ggdraw(plot) +
   cowplot::draw_image(
     olympics_logo,
-    x = .47, y = .98, width = 0.22,
+    x = .53, y = .98, width = 0.22,
     hjust = 0, vjust = 1, halign = 1, valign = 1
   )
 
