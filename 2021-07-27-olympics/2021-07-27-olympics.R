@@ -128,12 +128,12 @@ plot <- olympics %>%
     title = "Strongest Sports",
     subtitle = paste(
       "This graphic shows the performance of each country in the sport they",
-      "have most excelled at across all olympic games since 1980. Countries are",
-      "included based on the number of medals won and the frequency of their",
-      "participation in events between 1980 and 2016.",
+      "have most excelled at across all Summer Olympics between 1980 and 2016.",
+      "Countries are included based on the number of medals won and the frequency",
+      "of their participation",
       sep = "\n"
     ),
-    caption = "<br>Data from ***Kaggle*** | Visualisation by Jacob Scott"
+    caption = "<br>Data from **Kaggle** | Visualisation by **Jacob Scott** | Twitter **@_wurli**"
   ) +
   inset_element(
     key, left = .78, bottom = .85, right = 1, top = 1,
