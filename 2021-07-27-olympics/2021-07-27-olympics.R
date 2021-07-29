@@ -10,6 +10,13 @@ tuesdata <- tidytuesdayR::tt_load("2021-07-27")
 olympics <- tuesdata$olympics
 regions <- tuesdata$regions
 
+olympics_logo <- magick::image_read_svg(
+  "https://upload.wikimedia.org/wikipedia/commons/5/5c/Olympic_rings_without_rims.svg"
+)
+
+sysfonts::font_add_google("Scheherazade")
+showtext::showtext_auto()
+
 clr <- list(
   Gold = "#FFD700",
   Silver = "#C0C0C0",
@@ -22,7 +29,7 @@ key <- tibble(
   height = c(1, 1, 1, -3),
   colour = unlist(clr),
   text_colour = colorspace::darken(colour, 0.2),
-  label = c("Gold medals", "Silver medals", "Bronze medals", "Losses")
+  label = c("Gold medals", "Silver medals", "Bronze medals", "No medal")
 ) %>%
   ggplot(aes(x = 0, y = height, fill = colour, label = label, group = medal)) +
   geom_col(data = ~filter(., medal != "None"), width = 1) +
@@ -65,7 +72,7 @@ plot <- olympics %>%
   filter(total_medals >= 1) %>%
 
   group_by(country) %>%
-  mutate(top_sports = paste(sort(unique(sport)), collapse = "/")) %>%
+  mutate(top_sports = paste(sort(unique(sport)), collapse = " / ")) %>%
   ungroup() %>%
 
   group_by(country, year, top_sports, medal) %>%
@@ -73,7 +80,8 @@ plot <- olympics %>%
   mutate(n = ifelse(medal == "None", -n, n)) %>%
 
   mutate(label = glue::glue(
-    "{country}<br><span style = 'font-size:8pt'>{top_sports}</span>"
+    "**{country}**<br><span style = 'font-size:10pt; ",
+    "font-family: \"Scheherazade\"'>**{toupper(top_sports)}**</span>"
   )) %>%
 
   mutate(n_years = n_distinct(year)) %>%
@@ -119,6 +127,7 @@ plot <- olympics %>%
     strip.text = element_textbox_simple(
       halign = 0.5, margin = margin(6, 0, 6, 0), size = 9
     ),
+    plot.caption = element_textbox_simple(halign = 1),
     plot.background = element_rect(fill = "grey98", colour = "grey98", size = 30),
     panel.background = element_rect(fill = "grey98", colour = NA)
   ) +
@@ -131,7 +140,8 @@ plot <- olympics %>%
       "included based on the number of medals won and the frequency of their",
       "participation in events between 1980 and 2016.",
       sep = "\n"
-    )
+    ),
+    caption = "<br>Data from ***Kaggle*** | Visualisation by Jacob Scott"
   ) +
   inset_element(
     key, left = .78, bottom = .85, right = 1, top = 1,
@@ -140,7 +150,9 @@ plot <- olympics %>%
 
 cowplot::ggdraw(plot) +
   cowplot::draw_image(
-    magick::image_read_svg("2021-07-27-olympics/Olympic_rings_without_rims.svg"),
-    x = .5, y = 1, width = 0.3,
-    hjust = 1, vjust = 1, halign = 1, valign = 1
+    olympics_logo,
+    x = .47, y = .98, width = 0.22,
+    hjust = 0, vjust = 1, halign = 1, valign = 1
   )
+
+
