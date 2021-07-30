@@ -199,7 +199,7 @@ plot <- plot_data %>%
   )
 
 # Set up a device to save the graphic
-ragg::agg_png("2021-07-27-olympics/olympics.png", width = 1000, height = 600)
+ragg::agg_png("2021-07-27-olympics/olympics.png", width = 4000, height = 2400, scaling = 4)
 
 # Print the graphic to save
 cowplot::ggdraw(plot) +
